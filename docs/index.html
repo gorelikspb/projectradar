@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Projects Radar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        margin: 2rem;
+        color: #111;
+        background: #f8fafc;
+      }
+      h1 {
+        margin-bottom: 0.5rem;
+      }
+      button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: progress;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background: white;
+        border-radius: 0.75rem;
+        overflow: hidden;
+      }
+      th,
+      td {
+        padding: 0.65rem 0.8rem;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: #f1f5f9;
+        font-weight: 600;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      small {
+        color: #475569;
+      }
+      .hint {
+        background: #e0f2fe;
+        border-left: 4px solid #0ea5e9;
+        padding: 0.9rem 1rem;
+        margin: 1rem 0;
+        border-radius: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Projects Radar</h1>
+    <p>Последнее обновление: <span id="last-update">—</span></p>
+    <button id="refresh">Обновить данные</button>
+
+    <div class="hint">
+      Чтобы дописать произвольные заметки, открой Airtable/Notion базу и обнови поле <strong>manual_note</strong>.
+      Скрипт синхронизации не перезаписывает это поле.
+    </div>
+
+    <table id="projects">
+      <thead>
+        <tr>
+          <th>Проект</th>
+          <th>Статус</th>
+          <th>Следующий фокус</th>
+          <th>Обновлён</th>
+          <th>Репозиторий</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      const button = document.getElementById('refresh');
+      const tableBody = document.querySelector('#projects tbody');
+      const lastUpdateEl = document.getElementById('last-update');
+
+      async function loadData() {
+        button.disabled = true;
+        button.textContent = 'Обновляем...';
+        try {
+          const res = await fetch(`dashboard.json?ts=${Date.now()}`);
+          if (!res.ok) throw new Error(res.statusText);
+          const data = await res.json();
+          renderTable(data);
+          lastUpdateEl.textContent = new Date().toLocaleString('ru-RU');
+        } catch (error) {
+          alert('Не удалось загрузить данные: ' + error.message);
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Обновить данные';
+        }
+      }
+
+      function renderTable(rows) {
+        tableBody.innerHTML = '';
+        if (!rows.length) {
+          tableBody.innerHTML = `<tr><td colspan="5">Нет данных — запусти collect.js или дождись GitHub Action.</td></tr>`;
+          return;
+        }
+
+        for (const row of rows) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <strong>${row.project || '—'}</strong><br />
+              <small>${row.repo || ''}</small>
+            </td>
+            <td>${row.status || '—'}</td>
+            <td>${row.next_focus || '—'}</td>
+            <td>${row.last_update || '—'}</td>
+            <td><a href="${row.source_url}" target="_blank" rel="noopener">repo</a></td>
+          `;
+          tableBody.appendChild(tr);
+        }
+      }
+
+      button.addEventListener('click', loadData);
+      loadData();
+    </script>
+  </body>
+</html>
+

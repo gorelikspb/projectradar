@@ -1,0 +1,42 @@
+name: Sync Projects Radar
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *' # каждый час
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Collect dashboard
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN || github.token }}
+        run: npm run collect
+
+      - name: Commit docs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/dashboard.json docs/index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "chore: update radar dashboard"
+          git push origin HEAD:main
+

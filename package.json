@@ -1,0 +1,13 @@
+{
+  "name": "projects-radar",
+  "version": "1.0.0",
+  "description": "Автособор проектов из PROJECTS_OVERVIEW.json и публикация дашборда",
+  "type": "module",
+  "scripts": {
+    "collect": "node collect.js"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}
+
