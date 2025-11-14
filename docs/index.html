@@ -79,6 +79,7 @@
           <th>Следующий фокус</th>
           <th>Обновлён</th>
           <th>Репозиторий</th>
+          <th>Заметка</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -109,7 +110,7 @@
       function renderTable(rows) {
         tableBody.innerHTML = '';
         if (!rows.length) {
-          tableBody.innerHTML = `<tr><td colspan="5">Нет данных — запусти collect.js или дождись GitHub Action.</td></tr>`;
+          tableBody.innerHTML = `<tr><td colspan="6">Нет данных — запусти collect.js или дождись GitHub Action.</td></tr>`;
           return;
         }
 
@@ -124,6 +125,7 @@
             <td>${row.next_focus || '—'}</td>
             <td>${row.last_update || '—'}</td>
             <td><a href="${row.source_url}" target="_blank" rel="noopener">repo</a></td>
+            <td>${row.manual_note || '—'}</td>
           `;
           tableBody.appendChild(tr);
         }

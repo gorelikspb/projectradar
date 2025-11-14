@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import fetch from 'node-fetch';
 
 const configUrl = new URL('./repos.json', import.meta.url);
+const notesUrl = new URL('./manual-notes.json', import.meta.url);
 const docsDashboardUrl = new URL('./docs/dashboard.json', import.meta.url);
 const docsDirUrl = new URL('./docs/', import.meta.url);
 
@@ -28,6 +29,25 @@ if (!Array.isArray(config) && config.autoDiscover?.user) {
   ];
 }
 
+let manualNotes = [];
+
+try {
+  manualNotes = JSON.parse(await fs.readFile(notesUrl, 'utf8'));
+} catch (error) {
+  if (error.code !== 'ENOENT') {
+    console.warn('Не удалось прочитать manual-notes.json:', error.message);
+  }
+}
+
+const notesIndex = new Map(
+  manualNotes
+    .filter(Boolean)
+    .map(note => {
+      const key = `${note.owner || ''}/${note.repo || ''}::${note.project || ''}`;
+      return [key, note.manual_note ?? note.note ?? ''];
+    })
+);
+
 const aggregated = [];
 
 if (!repoList.length) {
@@ -41,12 +61,16 @@ for (const { owner, repo, branch = 'main' } of repoList) {
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     const data = await res.json();
     aggregated.push(
-      ...data.map(entry => ({
-        ...entry,
-        repo,
-        owner,
-        source_url: `https://github.com/${owner}/${repo}`
-      }))
+      ...data.map(entry => {
+        const key = `${owner}/${repo}::${entry.project || ''}`;
+        return {
+          ...entry,
+          repo,
+          owner,
+          source_url: `https://github.com/${owner}/${repo}`,
+          manual_note: notesIndex.get(key) || ''
+        };
+      })
     );
     console.log(`✔ ${owner}/${repo}: ${data.length} записей`);
   } catch (error) {
