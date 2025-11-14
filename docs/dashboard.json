@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "project": "Printacopy",
+    "status": "in_progress",
+    "last_update": "2025-11-14",
+    "done": [
+      "MVP landing page",
+      "Automated screenshot capture script"
+    ],
+    "next_focus": "Decide if backend is needed for forms or keep static MVP",
+    "repo": "printacopy",
+    "owner": "gorelikspb",
+    "source_url": "https://github.com/gorelikspb/printacopy",
+    "manual_note": ""
+  }
+]
