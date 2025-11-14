@@ -28,6 +28,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN || github.token }}
         run: npm run collect
 
+      - name: Sync Google Sheet
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: |
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ] || [ -z "$GOOGLE_SHEET_ID" ]; then
+            echo "Google Sheet secrets not set — пропускаем шаг."
+          else
+            npm run sync:sheet
+          fi
+
       - name: Commit docs
         run: |
           git config user.name "github-actions[bot]"
